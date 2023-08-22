@@ -4,6 +4,9 @@ CMakeCache.txt
 CMakeFiles
 Makefile
 cmake_install.cmake
+CTestTestfile.cmake
+Testing
 debug
 release
+testbin
 compile_commands.json
