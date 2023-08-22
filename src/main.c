@@ -16,13 +16,13 @@ void call(void* fptr, char *fstring, ...)
 
     size_t siargs_len = 100;
     size_t sdargs_len = 100;
-    size_t sldargs_len = 100;
+    //size_t sldargs_len = 100;
     uint64_t *siargs = malloc(siargs_len * sizeof(uint64_t));
-    long double *sdargs = malloc(sdargs_len * sizeof(long double));
-    long double *sldargs = malloc(sldargs_len * sizeof(long double));
+    double *sdargs = malloc(sdargs_len * sizeof(double));
+    //long double *sldargs = malloc(sldargs_len * sizeof(long double));
 
     size_t ii = 0, di = 0,
-           sii = 0, sdi = 0, sldi = 0;
+           sii = 0, sdi = 0;
 
     for (char* c = strchr(fstring, '%'); c != NULL; c = strchr(++c, '%')) {
         switch (*++c) {
@@ -52,8 +52,8 @@ void call(void* fptr, char *fstring, ...)
                 } else if (strncmp(c, "128", 3) == 0) {
                     __uint128_t arg = va_arg(args, __uint128_t);
                     if (ii < 5) {
-                        iargs[ii++] = (uint64_t)(arg >> 64);
                         iargs[ii++] = (uint64_t)(arg);
+                        iargs[ii++] = (uint64_t)(arg >> 64);
                     } else {
                         if (sii >= siargs_len - 1) {
                             siargs_len += 100;
@@ -72,19 +72,20 @@ void call(void* fptr, char *fstring, ...)
                     } else {
                         if (sdi >= sdargs_len) {
                             sdargs_len += 100;
-                            sdargs = realloc(sdargs, sdargs_len * sizeof(uint64_t));
+                            sdargs = realloc(sdargs, sdargs_len * sizeof(double));
                         }
                         sdargs[sdi++] = arg;
                     }
 
                 }
                 else if (strncmp(c, "128", 3) == 0) {
-                    long double arg = va_arg(args, __int128_t);
-                    if (sldi >= sldargs_len - 1) {
-                        sldargs_len += 100;
-                        sldargs = realloc(sldargs, sldargs_len * sizeof(uint64_t));
+                    long double arg = va_arg(args, long double);
+                    if (sdi >= sdargs_len - 2) {
+                        sdargs_len += 100;
+                        sdargs = realloc(sdargs, sdargs_len * sizeof(double));
                     }
-                    sldargs[sldi++] = arg;
+                    memcpy(sdargs + sdi, &arg, sizeof(long double));
+                    sdi += 2;
                 }
                 break;
             default:
@@ -93,6 +94,8 @@ void call(void* fptr, char *fstring, ...)
     }
 
     va_end(args);
+
+    printf("%f", sdargs[0]);
 
     size_t len = (sii + sdi) * 8;
     if ((sii + sdi) % 2) {
@@ -155,7 +158,7 @@ void call(void* fptr, char *fstring, ...)
     free(dargs);
     free(siargs);
     free(sdargs);
-    free(sldargs);
+    //free(sldargs);
 }
 
 
@@ -174,17 +177,27 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    void* func = dlsym(handle, "test5");
+    void* func = dlsym(handle, "test4");
 
     if (!func) {
         fprintf(stderr, "Error: %s\n", dlerror());
         dlclose(handle);
         return 1;
     }
-    
+
+    //call(func, 
+    //    "%f64 %f64 %f64 %f64 %f64 %f64 %f64 %f64 %f64",
+    //    0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9);
+    //call(func, 
+    //        "%i32 %i32 %i32 %i32 %i32 %i32 %i32 %i32 %i32 %i32",
+    //        1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+    //call(func, "%i128", 10);
+
     call(func, 
-        "%f64 %f64 %f64 %f64 %f64 %f64 %f64 %f64 %f64",
-        0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9);
+        "%f64 %f64 %f64 %f64 %f64 %f64 %f64 %f64 %f64"
+        "%i32 %i32 %i32 %i32 %i32 %i32 %i32 %i32 %i32",
+        0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9,
+        1, 2, 3, 4, 5, 6, 7, 8, 9);
 
     dlclose(handle);
 
