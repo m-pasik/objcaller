@@ -1,4 +1,5 @@
 #include "call.h"
+#include <stdint.h>
 
 void call(void* fptr, char *fstring, ...)
 {
@@ -8,15 +9,10 @@ void call(void* fptr, char *fstring, ...)
     uint64_t *iargs = calloc(6, sizeof(uint64_t));
     double *dargs = calloc(8, sizeof(double));
 
-    size_t siargs_len = 16;
-    size_t sdargs_len = 16;
-    //size_t sldargs_len = 100;
-    uint64_t *siargs = malloc(siargs_len * sizeof(uint64_t));
-    double *sdargs = malloc(sdargs_len * sizeof(double));
-    //long double *sldargs = malloc(sldargs_len * sizeof(long double));
+    size_t sargs_len = 16;
+    uint64_t *sargs = malloc(sargs_len * sizeof(uint64_t));
 
-    size_t ii = 0, di = 0,
-           sii = 0, sdi = 0;
+    size_t ii = 0, di = 0, si = 0;
 
     for (char* c = strchr(fstring, '%'); c != NULL; c = strchr(++c, '%')) {
         switch (*++c) {
@@ -26,22 +22,22 @@ void call(void* fptr, char *fstring, ...)
                     if (ii < 6) {
                         iargs[ii++] = (uint64_t)arg;
                     } else {
-                        if (sii >= siargs_len) {
-                            siargs_len *= 2;
-                            siargs = realloc(siargs, siargs_len * sizeof(uint64_t));
+                        if (si >= sargs_len) {
+                            sargs_len *= 2;
+                            sargs = realloc(sargs, sargs_len * sizeof(uint64_t));
                         }
-                        siargs[sii++] = (uint64_t)arg;
+                        sargs[si++] = (uint64_t)arg;
                     }
                 } else if (strncmp(c, "64", 2) == 0) {
                     long long int arg = va_arg(args, uint64_t);
                     if (ii < 6) {
                         iargs[ii++] = arg;
                     } else {
-                        if (sii >= siargs_len) {
-                            siargs_len *= 2;
-                            siargs = realloc(siargs, siargs_len * sizeof(uint64_t));
+                        if (si >= sargs_len) {
+                            sargs_len *= 2;
+                            sargs = realloc(sargs, sargs_len * sizeof(uint64_t));
                         }
-                        siargs[sii++] = arg;
+                        sargs[si++] = arg;
                     }
 
                 } else if (strncmp(c, "128", 3) == 0) {
@@ -50,12 +46,12 @@ void call(void* fptr, char *fstring, ...)
                         iargs[ii++] = (uint64_t)(arg);
                         iargs[ii++] = (uint64_t)(arg >> 64);
                     } else {
-                        if (sii >= siargs_len - 1) {
-                            siargs_len *= 2;
-                            siargs = realloc(siargs, siargs_len * sizeof(uint64_t));
+                        if (si >= sargs_len - 1) {
+                            sargs_len *= 2;
+                            sargs = realloc(sargs, sargs_len * sizeof(uint64_t));
                         }
-                        siargs[sii++] = (uint64_t)(arg);
-                        siargs[sii++] = (uint64_t)(arg >> 64);
+                        sargs[si++] = (uint64_t)(arg);
+                        sargs[si++] = (uint64_t)(arg >> 64);
 
                     }
                 }
@@ -66,22 +62,22 @@ void call(void* fptr, char *fstring, ...)
                     if (di < 8) {
                         dargs[di++] = arg;
                     } else {
-                        if (sdi >= sdargs_len) {
-                            sdargs_len *= 2;
-                            sdargs = realloc(sdargs, sdargs_len * sizeof(double));
+                        if (si >= sargs_len) {
+                            sargs_len *= 2;
+                            sargs = realloc(sargs, sargs_len * sizeof(uint64_t));
                         }
-                        sdargs[sdi++] = arg;
+                        memcpy(sargs + si++, &arg, sizeof(double));
                     }
 
                 }
                 else if (strncmp(c, "128", 3) == 0) {
                     long double arg = va_arg(args, long double);
-                    if (sdi >= sdargs_len - 1) {
-                        sdargs_len *= 2;
-                        sdargs = realloc(sdargs, sdargs_len * sizeof(double));
+                    if (si >= sargs_len - 1) {
+                        sargs_len *= 2;
+                        sargs = realloc(sargs, sargs_len * sizeof(uint64_t));
                     }
-                    memcpy(sdargs + sdi, &arg, sizeof(long double));
-                    sdi += 2;
+                    memcpy(sargs + si, &arg, sizeof(long double));
+                    si += 2;
                 }
                 break;
             default:
@@ -91,17 +87,14 @@ void call(void* fptr, char *fstring, ...)
 
     va_end(args);
 
-    size_t len = (sii + sdi) * 8;
-    if ((sii + sdi) % 2) {
+    size_t len = si * 8;
+    if (si % 2) {
         len += 8;
         asm volatile("lea -8(%rsp), %rsp");
     }
 
-    for (; sdi > 0; --sdi)
-        asm volatile("push %0;" : : "m"(sdargs[sdi - 1]));
-
-    for (; sii > 0; --sii)
-        asm volatile("push %0;" : : "m"(siargs[sii - 1]));
+    for (; si > 0; --si)
+        asm volatile("push %0;" : : "m"(sargs[si - 1]));
 
     asm volatile (
         "movq (%0), %%xmm0\n"
@@ -149,7 +142,5 @@ void call(void* fptr, char *fstring, ...)
 
     free(iargs);
     free(dargs);
-    free(siargs);
-    free(sdargs);
-    //free(sldargs);
+    free(sargs);
 }
