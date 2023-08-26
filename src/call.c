@@ -129,7 +129,7 @@ void call(void* fptr, char *fstring, ...)
         : [si] "r"(si), [sargs] "r"(&sargs[si-1]),
           [dargs] "r"(dargs), [iargs] "r"(iargs),
           [fptr] "m"(fptr), [len] "m"(len)
-        : "rax", "rdi", "rsi", "rdx", "rcx", "r8", "r9", "cc", "memory"
+        : "rax", "rdi", "rsi", "rdx", "rcx", "r8", "r9"
     );
 
     free(iargs);
