@@ -1,4 +1,4 @@
-#include "options.h"
+#include "../include/options.h"
 
 /*
  * Initializes `Options` struct. (it's pretty obvious)

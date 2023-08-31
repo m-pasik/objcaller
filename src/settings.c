@@ -1,4 +1,4 @@
-#include "settings.h"
+#include "../include/settings.h"
 
 Settings settings = {
     .program_name = NULL,
