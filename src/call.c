@@ -1,4 +1,4 @@
-#include "call.h"
+#include "../include/call.h"
 #include <stdint.h>
 
 void call(void* fptr, char *fstring, ...)

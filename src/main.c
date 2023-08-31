@@ -5,8 +5,8 @@
 #include <sys/types.h>
 #include <stdint.h>
 
-#include "call.h"
-#include "loader.h"
+#include "../include/call.h"
+#include "../include/loader.h"
 
 int main(int argc, char **argv)
 {

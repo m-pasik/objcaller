@@ -1,7 +1,7 @@
 #include <string.h>
 
-#include "loader.h"
-#include "call.h"
+#include "../include/loader.h"
+#include "../include/call.h"
 #include "test.h"
 
 int main(int argc, char **argv)
@@ -106,7 +106,7 @@ int main(int argc, char **argv)
 
         call(func,
              "%f128 %f128 %f128",
-             0.1, 0.2, 0.3);
+             (long double)0.1, (long double)0.2, (long double)0.3);
 
     } else if (strcmp(argv[1], "test9") == 0) {
         func = load_function(handle, "test9");
