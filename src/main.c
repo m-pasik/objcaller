@@ -7,36 +7,64 @@
 
 #include "../include/call.h"
 #include "../include/loader.h"
+#include "../include/options.h"
+#include "../include/settings.h"
+
+/*
+ * Displays help
+ */
+int help(size_t argc, char **argv)
+{
+    printf("Usage: %s [options]\n\n", settings.program_name);
+    printf("Options:\n"
+           "  --help        -h  -- Displays help.\n");
+    exit(0);
+    return 0;
+}
+
 
 int main(int argc, char **argv)
 {
-    if (argc < 2) {
-        fprintf(stderr, "Usage: %s <library_path>\n", argv[0]);
-        return 1;
+    settings.program_name = argv[0];
+
+    if (argc < 2)
+        help(0, NULL);
+
+
+    /*
+     * Initialize `Options` struct
+     * and declare command line arguments.
+     */
+
+    Options *options = init_options();
+
+    add_option(options, "help", 'h', 0, 0, help);
+
+
+    char **args = argv + 1;
+    size_t arg_count = argc - 1;
+
+    /*
+     * Parse command line arguments
+     */
+    for (ArgInfo *arg = parse_argument(options, &arg_count, &args);
+         arg;
+         arg = parse_argument(options, &arg_count, &args)) {
+        
+        /* Exif if invalid argument was provided. */
+        if (!arg->option) {
+            fprintf(stderr, "ERROR: Invalid argument %s\n", arg->opt_argv[0]);
+            exit(1);
+        }
+
+        /* Call function associated with the provided argument. */
+        arg->option->call(arg->opt_argc, arg->opt_argv);
+
+        free(arg);
     }
 
-    const char *path = argv[1];
-
-    void *handle = load_object(path);
-    if (!handle) { 
-        printf("Error: %s\n", dlerror());
-        return 1;
-    }
-
-    void *func = load_function(handle, "test4");
-    if (!func) {
-        fprintf(stderr, "Error: %s\n", dlerror());
-        close_object(handle);
-        return 1;
-    }
-
-    call(func, 
-        "%f64 %f64 %f64 %f64 %f64 %f64 %f64 %f64 %f64"
-        "%i32 %i32 %i32 %i32 %i32 %i32 %i32 %i32 %i32",
-        0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9,
-        1, 2, 3, 4, 5, 6, 7, 8, 9);
-
-    close_object(handle);
+    free_options(options);
 
     return 0;
 }
+
