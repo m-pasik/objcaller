@@ -1,4 +1,4 @@
-#include "loader.h"
+#include "../include/loader.h"
 
 void *load_object(const char *path)
 {
