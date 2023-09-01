@@ -22,6 +22,15 @@ int help(size_t argc, char **argv)
     return 0;
 }
 
+int file(size_t argc, char **argv)
+{
+    if (!settings.files)
+        settings.files = init_file_list();
+
+    add_file(settings.files, argv[0]);
+
+    return 0;
+}
 
 int main(int argc, char **argv)
 {
@@ -29,7 +38,6 @@ int main(int argc, char **argv)
 
     if (argc < 2)
         help(0, NULL);
-
 
     /*
      * Initialize `Options` struct
@@ -39,6 +47,8 @@ int main(int argc, char **argv)
     Options *options = init_options();
 
     add_option(options, "help", 'h', 0, 0, help);
+
+    add_option(options, "file", 'f', 1, 1, file);
 
 
     char **args = argv + 1;
@@ -64,6 +74,9 @@ int main(int argc, char **argv)
     }
 
     free_options(options);
+
+    if (settings.files)
+        free_file_list(settings.files);
 
     return 0;
 }
