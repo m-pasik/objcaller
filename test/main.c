@@ -1,3 +1,6 @@
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "../include/loader.h"
@@ -20,9 +23,9 @@ int main(int argc, char **argv)
             return 1;
         }
 
-        call(func,
-             "%i32 %i32 %i32 %i32 %i32 %i32",
-             1, 2, 3, 4, 5, 6);
+        int32_t data[] = {1, 2, 3, 4, 5, 6};
+
+        call(func, "%i32 %i32 %i32 %i32 %i32 %i32", &data);
 
     } else if (strcmp(argv[1], "test2") == 0) {
         func = load_function(handle, "test2");
@@ -31,10 +34,10 @@ int main(int argc, char **argv)
             close_object(handle);
             return 1;
         }
+    
+        int64_t data[] = {1, 2, 3, 4, 5, 6};
 
-        call(func,
-             "%i64 %i64 %i64 %i64 %i64 %i64",
-             1LL, 2LL, 3LL, 4LL, 5LL, 6LL);
+        call(func, "%i64 %i64 %i64 %i64 %i64 %i64", &data);
 
     } else if (strcmp(argv[1], "test3") == 0) {
         func = load_function(handle, "test3");
@@ -44,9 +47,9 @@ int main(int argc, char **argv)
             return 1;
         }
 
-        call(func,
-             "%i128 %i128 %i128",
-             (__int128_t)1, (__int128_t)2, (__int128_t)3);
+        __int128_t data[] = {1, 2, 3};
+
+        call(func, "%i128 %i128 %i128", &data);
 
     } else if (strcmp(argv[1], "test4") == 0) {
         func = load_function(handle, "test4");
@@ -56,9 +59,9 @@ int main(int argc, char **argv)
             return 1;
         }
 
-        call(func,
-             "%i32 %i32 %i32 %i32 %i32 %i32 %i32 %i32 %i32 %i32",
-             1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+        int32_t data[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+
+        call(func, "%i32 %i32 %i32 %i32 %i32 %i32 %i32 %i32 %i32 %i32", &data);
 
     } else if (strcmp(argv[1], "test5") == 0) {
         func = load_function(handle, "test5");
@@ -68,9 +71,9 @@ int main(int argc, char **argv)
             return 1;
         }
 
-        call(func,
-             "%i64 %i128 %i128 %i128 %i64",
-             1LL, (__int128_t)2, (__int128_t)3, (__int128_t)4, 5LL);
+        int64_t data[] = {1, 2, 0, 3, 0, 4, 0, 5};
+
+        call(func, "%i64 %i128 %i128 %i128 %i64", &data);
 
     } else if (strcmp(argv[1], "test6") == 0) {
         func = load_function(handle, "test6");
@@ -80,9 +83,9 @@ int main(int argc, char **argv)
             return 1;
         }
 
-        call(func,
-             "%f64 %f64 %f64 %f64 %f64 %f64 %f64 %f64 %f64",
-             0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8);
+        double data[] = {0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8};
+
+        call(func, "%f64 %f64 %f64 %f64 %f64 %f64 %f64 %f64", data);
 
     } else if (strcmp(argv[1], "test7") == 0) {
         func = load_function(handle, "test7");
@@ -92,9 +95,9 @@ int main(int argc, char **argv)
             return 1;
         }
 
-        call(func,
-             "%f64 %f64 %f64 %f64 %f64 %f64 %f64 %f64 %f64 %f64 %f64",
-             0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0);
+        double data[] = {0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0};
+
+        call(func, "%f64 %f64 %f64 %f64 %f64 %f64 %f64 %f64 %f64 %f64", data);
 
     } else if (strcmp(argv[1], "test8") == 0) {
         func = load_function(handle, "test8");
@@ -104,11 +107,11 @@ int main(int argc, char **argv)
             return 1;
         }
 
-        call(func,
-             "%f128 %f128 %f128",
-             (long double)0.1, (long double)0.2, (long double)0.3);
+        long double data[] = {0.1, 0.2, 0.3};
 
-    } else if (strcmp(argv[1], "test9") == 0) {
+        call(func, "%f128 %f128 %f128", data);
+
+    }  else if (strcmp(argv[1], "test9") == 0) {
         func = load_function(handle, "test9");
 
         if (!func) {
@@ -116,10 +119,27 @@ int main(int argc, char **argv)
             return 1;
         }
 
+        double fdata[] = {0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0};
+        uint32_t idata[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+        uint8_t data[sizeof(fdata) + sizeof(idata)];
+
+        double *fdatap = fdata;
+        uint32_t *idatap = idata;
+        uint8_t *datap = data;
+
+        for (size_t i = 0; i < 19; i++) {
+            if (i % 2) {
+                *(uint32_t*)datap = *idatap++;
+                datap += 4;
+            } else {
+                *(double*)datap = *fdatap++;
+                datap += 8;
+            }
+        }
+        
         call(func,
              "%f64 %i32 %f64 %i32 %f64 %i32 %f64 %i32 %f64 %i32 %f64 %i32 %f64 %i32 %f64 %i32 %f64 %i32 %f64",
-             0.1, 1, 0.2, 2, 0.3, 3, 0.4, 4, 0.5, 5, 0.6, 6, 0.7, 7, 0.8, 8, 0.9, 9, 1.0);
-
+             data);
     }
 
     return 0;

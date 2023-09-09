@@ -7,6 +7,6 @@
 #include <sys/types.h>
 #include <stdint.h>
 
-void call(void* fptr, char *fstring, ...);
+void call(void* fptr, char *fstring, void *args);
 
 #endif

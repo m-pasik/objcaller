@@ -93,7 +93,7 @@ int main(int argc, char **argv)
 
     add_option(options, "file", 'f', 1, 1, file);
 
-    add_option(options, "call", 'c', 2, 2, call_func);
+    add_option(options, "call", 'c', 3, 3, call_func);
 
     char **args = argv + 1;
     size_t arg_count = argc - 1;

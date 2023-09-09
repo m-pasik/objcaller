@@ -1,8 +1,11 @@
 #include "../include/call.h"
 #include <stdint.h>
+#include <string.h>
 
-void call(void* fptr, char *fstring, ...)
+void call(void* fptr, char *fstring, void *args)
 {
+    uint8_t *data = (uint8_t*)args;
+
     /* Arrays of integer and float arguments to be passed in registers */
     uint64_t *iargs = calloc(6, sizeof(uint64_t));
     double *fargs = calloc(8, sizeof(double));
@@ -17,14 +20,14 @@ void call(void* fptr, char *fstring, ...)
      * Read varargs based on format string.
      */
 
-    va_list args;
-    va_start(args, fstring);
-
     for (char* c = strchr(fstring, '%'); c != NULL; c = strchr(++c, '%')) {
         switch (*++c) {
             case 'i':   /* Integer */
                 if (strncmp(++c, "32", 2) == 0) {   /* 32-bit */
-                    uint32_t arg = va_arg(args, uint32_t);
+                    uint32_t arg;
+                    memcpy(&arg, data, sizeof(uint32_t));
+                    data += sizeof(uint32_t);
+
                     if (ii < 6) {
                         iargs[ii++] = (uint64_t)arg;
                     } else {
@@ -35,7 +38,9 @@ void call(void* fptr, char *fstring, ...)
                         sargs[si++] = (uint64_t)arg;
                     }
                 } else if (strncmp(c, "64", 2) == 0) {  /* 64-bit */
-                    uint64_t arg = va_arg(args, uint64_t);
+                    uint64_t arg;
+                    memcpy(&arg, data, sizeof(uint64_t));
+                    data += sizeof(uint64_t);
 
                     if (ii < 6) {
                         iargs[ii++] = arg;
@@ -48,7 +53,9 @@ void call(void* fptr, char *fstring, ...)
                     }
 
                 } else if (strncmp(c, "128", 3) == 0) { /* 128-bit */
-                    __uint128_t arg = va_arg(args, __uint128_t);
+                    __uint128_t arg;
+                    memcpy(&arg, data, sizeof(__uint128_t));
+                    data += sizeof(__uint128_t);
 
                     if (ii < 5) {
                         iargs[ii++] = (uint64_t)(arg);
@@ -69,7 +76,9 @@ void call(void* fptr, char *fstring, ...)
                  * Float
                  */
                 if (strncmp(++c, "64", 2) == 0) {  /* 64-bit */
-                    double arg = va_arg(args, double);
+                    double arg;
+                    memcpy(&arg, data, sizeof(double));
+                    data += sizeof(double);
 
                     if (fi < 8) {
                         fargs[fi++] = arg;
@@ -83,7 +92,9 @@ void call(void* fptr, char *fstring, ...)
 
                 }
                 else if (strncmp(c, "128", 3) == 0) {   /* 128-bit */
-                    long double arg = va_arg(args, long double);
+                    long double arg;
+                    memcpy(&arg, data, sizeof(long double));
+                    data += sizeof(long double);
 
                     if (si >= sargs_len - 1) {
                         sargs_len *= 2;
@@ -97,8 +108,6 @@ void call(void* fptr, char *fstring, ...)
                 break;
         }
     }
-
-    va_end(args);
 
     /*
      * Passing arguments and calling function
