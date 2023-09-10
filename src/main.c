@@ -23,7 +23,7 @@ int help(size_t argc, char **argv)
            "  --call <index> <function> <args>  -c  -- Call a function in a file\n"
            "\n"
            "Calling functions:\n"
-           "  First argument to --call function is an index of the object.\n"
+           "  First argument to --call option is an index of the object.\n"
            "  file containing a function you want to call.\n"
            "  Second argument is the name of the function.\n"
            "  Third is a string containing the list of arguments.\n"
@@ -68,9 +68,7 @@ int file(size_t argc, char **argv)
  */
 int call_func(size_t argc, char **argv)
 {
-    /*
-     * To be implemented.
-     */
+    
 
     return 0;
 }
