@@ -1,8 +1,8 @@
 #ifndef SETTINGS_H
 #define SETTINGS_H
 
-#include <stdlib.h>
-#include <string.h>
+#include <stddef.h>
+#include <stdint.h>
 
 typedef struct {
     size_t size;
@@ -31,7 +31,7 @@ typedef struct {
 typedef struct {
     char *program_name;
     FileList *files;
-    FunctionList *functions;
+    FunctionList *function_list;
 } Settings;
 
 extern Settings settings;

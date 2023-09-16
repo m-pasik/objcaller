@@ -68,7 +68,30 @@ int file(size_t argc, char **argv)
  */
 int call_func(size_t argc, char **argv)
 {
-    
+    if (!settings.function_list)
+        settings.function_list = init_function_list();
+
+    AddInfo info = add_function(settings.function_list, strtol(argv[0], NULL, 10), argv[1], argv[2]);
+
+    switch (info.status) {
+        case 0:
+            break;
+        case 1:
+            fprintf(stderr, "ERROR: Invalid format: %s\n", info.details);
+            exit(1);
+            break;
+        case 2:
+            fprintf(stderr, "ERROR: Invalid type: %s\n", info.details);
+            exit(1);
+            break;
+        case 3:
+            fprintf(stderr, "ERROR: Invalid argument: %s\n", info.details);
+            exit(1);
+            break;
+    }
+
+    if (info.details)
+        free(info.details);
 
     return 0;
 }
@@ -116,6 +139,11 @@ int main(int argc, char **argv)
     }
 
     free_options(options);
+    
+    if (settings.function_list) {
+        free_function_list(settings.function_list);
+    }
+
 
     if (settings.files)
         free_file_list(settings.files);

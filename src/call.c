@@ -1,6 +1,9 @@
 #include "../include/call.h"
-#include <stdint.h>
+#include <stdlib.h>
+#include <stdarg.h>
 #include <string.h>
+#include <sys/types.h>
+#include <stdint.h>
 
 void call(void* fptr, char *fstring, void *args)
 {
